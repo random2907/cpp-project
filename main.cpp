@@ -8,6 +8,18 @@ class Frame{
                 }
 };
 
+class Fill{
+        public:
+                Fill(int height, int width){
+                        for (int i=0; i<height; i++){
+                                for (int i=0; i<width; i++){
+                                        std::cout << "-";
+                                }
+                                std::cout << std::endl;
+                        }
+                }
+};
+
 int main(){
         Frame f;
         std::string s;
@@ -24,16 +36,17 @@ int main(){
         std::string color[]={red_fg,green_fg,blue_fg};
         int x=0;
         while (1){
+                Fill(4,5);
                 std::cout << color[x];
                 std::cout << bold;
                 std::cout << s;
                 std::cout << reset << std::endl;
-                f.clear();
                 if (x!=2){
                         x++;
                 }else{
                         x=0;
                 }
+                f.clear();
                 sleep(1);
         }
 
