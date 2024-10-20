@@ -1,41 +1,51 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <unistd.h>
 #include <thread>
 
 
 class Frame {
         public:
-                void clear() { std::cout << "\e[2J\e[H"; }
+                void clear() {
+                        std::cout << "\e[H\e[2J"; 
+                }
 };
 
 class Fill{
         public:
-                Fill(std::string color, char c, int width){
+                static std::string test(std::string color, char c, int width){
+                        std::string buffer="";
                         for (int i=0; i<width; i++){
-                                std::cout << color+c;
+                                buffer+=color+c;
                         }
+                        return buffer;
                 }
 };
 
-class Texture{
+
+class Texture {
         public:
                 std::string s;
                 std::ifstream file;
-                Texture(std::string filename) : file(filename){
-                }
-                std::string nextline(){
-                        if (std::getline(file, s)) {
-                                return s;
-                        } else {
-                                file.clear();
-                                file.seekg(0);
-                                return nextline();
+
+                Texture(std::string filename) : file(filename) {
+                        if (!file.is_open()) {
+                                std::cerr << "Error opening file: " << filename << std::endl;
                         }
                 }
-};
 
+                std::string nextline() {
+                        std::getline(file, s);
+                        return s;
+                }
+                void reset() {
+                        file.clear();
+                        file.seekg(0);
+                }
+                bool eof(){
+                        return file.eof();
+                }
+};
 
 int main(){
         Frame f;
@@ -49,13 +59,15 @@ int main(){
         std::string color[]={red_fg,green_fg,blue_fg};
         int test=0;
         while (1){
+                std::string Outputbuffer="";
                 while (1){
                         int count_space[10]={0};
                         int count_no_space[10]={0};
                         int i=0;
                         int j=0;
                         std::string next = t[test].nextline();
-                        if (next.empty()){
+                        if (t[test].eof()){
+                                t[test].reset();
                                 break;
                         }
                         int length = next.length();
@@ -82,17 +94,19 @@ int main(){
                         }
                         for (int j=0; j<10; j++){
                                 if (count_space[j]!=0){
-                                        Fill(bold+color[x],' ',count_space[j]);
+                                        Outputbuffer+=Fill::test(bold+color[x],'\\',count_space[j]);
                                 }
                                 if (count_space[j]!=0){
-                                        Fill(bold+color[x],'*',count_no_space[j]);
+                                        Outputbuffer+=Fill::test(bold+color[x],'-',count_no_space[j]);
                                 }
                         }
+                        Outputbuffer+=reset+"\n";
                         std::cout << reset << std::endl;
                 }
-                test==0? test=1 : test=0;
+                std::cout << Outputbuffer;
+                test = (test == 0) ? 1 : 0;
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 f.clear();
-                sleep(1);
         }
         return 0;
 }
